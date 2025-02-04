@@ -1,5 +1,5 @@
 import md5 from "spark-md5";
-import { DEFAULT_MODELS, DEFAULT_GA_ID } from "../constant";
+import { DEFAULT_MODELS } from "../constant";
 import { isGPT4Model } from "../utils/model";
 
 declare global {
@@ -135,6 +135,7 @@ export const getServerSideConfig = () => {
   const disableGPT4 = !!process.env.DISABLE_GPT4;
   let customModels = process.env.CUSTOM_MODELS ?? "";
   let defaultModel = process.env.DEFAULT_MODEL ?? "";
+  let defaultCompressModel = process.env.DEFAULT_COMPRESS_MODEL ?? "";
   let visionModels = process.env.VISION_MODELS ?? "";
 
   if (disableGPT4) {
@@ -247,7 +248,7 @@ export const getServerSideConfig = () => {
     siliconFlowApiKey: getApiKey(process.env.SILICONFLOW_API_KEY),
 
     gtmId: process.env.GTM_ID,
-    gaId: process.env.GA_ID || DEFAULT_GA_ID,
+    gaId: process.env.GA_ID,
 
     needCode: ACCESS_CODES.size > 0,
     code: process.env.CODE,
@@ -262,6 +263,7 @@ export const getServerSideConfig = () => {
     disableFastLink: !!process.env.DISABLE_FAST_LINK,
     customModels,
     defaultModel,
+    defaultCompressModel,
     visionModels,
     allowedWebDavEndpoints,
     enableMcp: process.env.ENABLE_MCP === "true",

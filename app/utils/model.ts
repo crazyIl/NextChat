@@ -45,7 +45,7 @@ const sortModelTable = (models: ReturnType<typeof collectModels>) =>
  */
 export function getModelProvider(modelWithProvider: string): [string, string?] {
   const [model, provider] = modelWithProvider.split(/@(?!.*@)/);
-  return [model, provider];
+  return [model, provider ?? "OpenAI"];
 }
 
 export function collectModelTable(

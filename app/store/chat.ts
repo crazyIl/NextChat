@@ -1,9 +1,4 @@
-import {
-  getMessageTextContent,
-  isDalle3,
-  safeLocalStorage,
-  trimTopic,
-} from "../utils";
+import { getMessageTextContent, isDalle3, safeLocalStorage } from "../utils";
 
 import { indexedDBStorage } from "@/app/utils/indexedDB-storage";
 import { nanoid } from "nanoid";
@@ -690,39 +685,18 @@ export const useChatStore = createPersistStore(
             countMessages(messages) >= SUMMARIZE_MIN_LEN) ||
           refreshTitle
         ) {
-          const startIndex = Math.max(
-            0,
-            messages.length - modelConfig.historyMessageCount,
+          // 获取最后一条用户消息
+          const lastUserMessage = messages.findLast((m) => m.role === "user");
+
+          // 如果找到用户消息,截取前8个字符并加上省略号,否则使用默认主题
+          const newTopic = lastUserMessage?.content
+            ? lastUserMessage.content.slice(0, 8) + "..."
+            : DEFAULT_TOPIC;
+
+          get().updateTargetSession(
+            session,
+            (session) => (session.topic = newTopic),
           );
-          const topicMessages = messages
-            .slice(
-              startIndex < messages.length ? startIndex : messages.length - 1,
-              messages.length,
-            )
-            .concat(
-              createMessage({
-                role: "user",
-                content: Locale.Store.Prompt.Topic,
-              }),
-            );
-          api.llm.chat({
-            messages: topicMessages,
-            config: {
-              model,
-              stream: false,
-              providerName,
-            },
-            onFinish(message, responseRes) {
-              if (responseRes?.status === 200) {
-                get().updateTargetSession(
-                  session,
-                  (session) =>
-                    (session.topic =
-                      message.length > 0 ? trimTopic(message) : DEFAULT_TOPIC),
-                );
-              }
-            },
-          });
         }
         const summarizeIndex = Math.max(
           session.lastSummarizeIndex,

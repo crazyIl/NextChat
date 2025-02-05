@@ -16,6 +16,8 @@ const DANGER_CONFIG = {
   defaultModel: serverConfig.defaultModel,
   defaultCompressModel: serverConfig.defaultCompressModel,
   visionModels: serverConfig.visionModels,
+  captchaType: serverConfig.captchaType,
+  captchaSiteKey: serverConfig.captchaSiteKey,
 };
 
 declare global {

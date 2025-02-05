@@ -92,6 +92,10 @@ declare global {
       DEFAULT_INPUT_TEMPLATE?: string;
 
       ENABLE_MCP?: string; // enable mcp functionality
+
+      CAPTCHA_TYPE?: string;
+      CAPTCHA_SITE_KEY?: string;
+      CAPTCHA_SECRET?: string;
     }
   }
 }
@@ -267,5 +271,8 @@ export const getServerSideConfig = () => {
     visionModels,
     allowedWebDavEndpoints,
     enableMcp: process.env.ENABLE_MCP === "true",
+    captchaType: process.env.CAPTCHA_TYPE,
+    captchaSiteKey: process.env.CAPTCHA_SITE_KEY,
+    captchaSecret: process.env.CAPTCHA_SECRET,
   };
 };

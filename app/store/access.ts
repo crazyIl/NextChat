@@ -144,6 +144,10 @@ const DEFAULT_ACCESS_STATE = {
 
   // tts config
   edgeTTSVoiceName: "zh-CN-YunxiNeural",
+
+  // captcha
+  captchaType: "",
+  captchaSiteKey: "",
 };
 
 export const useAccessStore = createPersistStore(
@@ -241,6 +245,10 @@ export const useAccessStore = createPersistStore(
         !this.enabledAccessControl() ||
         (this.enabledAccessControl() && ensure(get(), ["accessCode"]))
       );
+    },
+
+    isValidCaptcha() {
+      return ensure(get(), ["captchaType", "captchaSiteKey"]);
     },
     fetch() {
       if (fetchState > 0 || getClientConfig()?.buildMode === "export") return;

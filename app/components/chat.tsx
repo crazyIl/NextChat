@@ -986,6 +986,75 @@ export function ShortcutKeyModal(props: { onClose: () => void }) {
   );
 }
 
+function TurnstileModal() {
+  useEffect(() => {
+    // Save original fetch
+    const originalFetch = window.fetch;
+
+    // Override fetch
+    window.fetch = async function (...args) {
+      let response = await originalFetch(...args);
+
+      if (
+        response.headers.has("cf-mitigated") &&
+        response.headers.get("cf-mitigated") === "challenge"
+      ) {
+        // Create invisible turnstile container if not exists
+        let turnstileContainer = document.getElementById("turnstile_container");
+        if (!turnstileContainer) {
+          turnstileContainer = document.createElement("div");
+          turnstileContainer.id = "turnstile_container";
+          turnstileContainer.style.display = "none";
+          document.body.appendChild(turnstileContainer);
+        }
+
+        await new Promise((resolve, reject) => {
+          // @ts-ignore
+          window.turnstile?.render("#turnstile_container", {
+            sitekey: useAccessStore.getState().captchaSiteKey,
+            size: "invisible",
+            "error-callback": function (e: any) {
+              reject(e);
+            },
+            callback: function (token: string, preClearanceObtained: boolean) {
+              if (preClearanceObtained) {
+                resolve(token);
+              } else {
+                reject(new Error("Unable to obtain pre-clearance"));
+              }
+            },
+          });
+        });
+
+        // Replay original request
+        response = await originalFetch(...args);
+      }
+
+      return response;
+    };
+
+    // Load Turnstile script
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup
+      document.body.removeChild(script);
+      const container = document.getElementById("turnstile_container");
+      if (container) {
+        document.body.removeChild(container);
+      }
+      // @ts-ignore
+      window.fetch = originalFetch;
+    };
+  }, []);
+
+  return null;
+}
+
 function _Chat() {
   type RenderMessage = ChatMessage & { preview?: boolean };
 
@@ -2167,5 +2236,14 @@ function _Chat() {
 export function Chat() {
   const chatStore = useChatStore();
   const session = chatStore.currentSession();
-  return <_Chat key={session.id}></_Chat>;
+  const access = useAccessStore();
+
+  return (
+    <>
+      <_Chat key={session.id} />
+      {access.isValidCaptcha() && access.captchaType === "turnstile" && (
+        <TurnstileModal />
+      )}
+    </>
+  );
 }
